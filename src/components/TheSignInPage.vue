@@ -14,95 +14,100 @@
             >
           </q-tabs>
 
-          <q-form @submit="login">
-            <q-tab-pane name="email">
-              <div style="margin-bottom: 5px; font-weight: 500">
-                E-Posta Adresi
-              </div>
-              <q-input v-model="email" class="ust-3btn" />
-              <div
-                style="margin-bottom: 5px; margin-top: 15px; font-weight: 500"
-              >
-                Şifre
-              </div>
-              <q-input v-model="password" type="password" class="ust-3btn" />
-            </q-tab-pane>
-
-            <div
-              class="q-gutter-sm"
-              style="margin-left: -15px; margin-top: 5px"
-            >
-              <div>
-                <q-checkbox
-                  v-model="right"
-                  label="Beni Hatırla"
-                  size="sm"
-                ></q-checkbox>
-                <span style="margin-left: 121px">
-                  <a
-                    href="#https://www.dr.com.tr/sifremiunuttum"
-                    style="color: red; margin-left: 10px"
-                    >Şifremi Unuttum</a
-                  >
-                </span>
-              </div>
+          <q-form @submit="onSubmit" @reset="onReset" class="signup-form">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <q-input
+                type="email"
+                filled
+                id="email"
+                v-model="user.email"
+                :rules="[(val) => !!val || 'Lütfen Email giriniz.']"
+              />
             </div>
+
+            <div class="form-group">
+              <label for="password">Şifre</label>
+              <q-input
+                type="password"
+                filled
+                id="password"
+                v-model="user.password"
+                :rules="[(val) => !!val || 'Lütfen Şifre giriniz.']"
+              />
+            </div>
+          </q-form>
+
+          <div class="q-gutter-sm" style="margin-left: -15px; margin-top: 5px">
             <div>
-              <q-card id="q-app" class="robot-card">
-                <div class="q-pa-md">
-                  <div class="q-gutter-sm">
-                    <q-checkbox
-                      v-model="robot"
-                      label="Ben Robot Değilim"
-                      size="lg"
-                      style="margin-top: -1px"
-                      @click="startSpinner"
-                      :disable="showSpinner"
-                    ></q-checkbox>
-                    <q-img
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/RecaptchaLogo.svg/1200px-RecaptchaLogo.svg.png"
-                      alt=""
-                      class="reCaptha"
-                    />
-                    <q-spinner
-                      v-if="showSpinner"
-                      color="primary"
-                      size="2em"
-                      style="margin-top: -118px; margin-left: 18px"
-                    />
-                  </div>
-                </div>
-              </q-card>
-              <br />
-              <span style="margin-top: 8px">
+              <q-checkbox
+                v-model="right"
+                label="Beni Hatırla"
+                size="sm"
+              ></q-checkbox>
+              <span style="margin-left: 121px">
                 <a
-                  style="
-                    color: #084793;
-                    font-size: small;
-                    text-decoration: underline;
-                    font-weight: 400;
-                  "
-                  @click="showPrivacyPolicy"
-                  >Gizlilik ilkesi</a
+                  href="#https://www.dr.com.tr/sifremiunuttum"
+                  style="color: blue; margin-left: 10px"
+                  >Şifremi Unuttum</a
                 >
               </span>
             </div>
-            <q-btn
-              class="q-mt-md"
-              type="submit"
-              label="Giriş Yap"
-              style="
-                background-color: #084793;
-                color: white;
-                font-family: inherit;
-                width: 100%;
-                text-transform: capitalize;
-                height: 40px;
-              "
-              @click="register()"
-            />
-          </q-form>
-
+          </div>
+          <div>
+            <q-card id="q-app" class="robot-card">
+              <div class="q-pa-md">
+                <div class="q-gutter-sm">
+                  <q-checkbox
+                    v-model="robot"
+                    label="Ben Robot Değilim"
+                    size="lg"
+                    style="margin-top: -1px"
+                    @click="startSpinner"
+                    :disable="showSpinner"
+                  ></q-checkbox>
+                  <q-img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/RecaptchaLogo.svg/1200px-RecaptchaLogo.svg.png"
+                    alt=""
+                    class="reCaptha"
+                  />
+                  <q-spinner
+                    v-if="showSpinner"
+                    color="primary"
+                    size="2em"
+                    style="margin-top: -118px; margin-left: 18px"
+                  />
+                </div>
+              </div>
+            </q-card>
+            <br />
+            <span style="margin-top: 8px">
+              <a
+                style="
+                  color: #084793;
+                  font-size: small;
+                  text-decoration: underline;
+                  font-weight: 400;
+                "
+                @click="showPrivacyPolicy"
+                >Gizlilik ilkesi</a
+              >
+            </span>
+          </div>
+          <q-btn
+            class="q-mt-md"
+            type="submit"
+            label="Giriş Yap"
+            style="
+              background-color: #084793;
+              color: white;
+              font-family: inherit;
+              width: 100%;
+              text-transform: capitalize;
+              height: 40px;
+            "
+            @click="register()"
+          />
           <div class="text-center" style="margin-top: 20px; font-weight: 500">
             Hesabınız Yok Mu?
             <span>
@@ -145,6 +150,21 @@
 import { ref } from 'vue';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'vue-router';
+import { defineComponent } from 'vue';
+import { useUserStore } from '../stores/kullanici';
+
+const user = useUserStore();
+
+const onSubmit = async () => {
+  await user.saveUserToFirebase(user.$state);
+};
+
+const onReset = () => {
+  user.updateUser({
+    email: '',
+    password: '',
+  });
+};
 const tab = ref<'email' | 'phone'>('email');
 const email = ref('');
 const password = ref('');
@@ -155,17 +175,18 @@ const showSpinner = ref(false);
 const showDialog = ref(false);
 const router = useRouter();
 const register = () => {
-  createUserWithEmailAndPassword(getAuth(), email.value, password.value).then(
-    (data) => {
+  createUserWithEmailAndPassword(getAuth(), user.email, user.password)
+    .then((userCredential) => {
       console.log('Giriş başarılı!');
       router.push('/');
-    }
-  );
+    })
+    .catch((error) => {
+      console.error('Giriş başarısız!', error.message);
+    });
 };
-
 const login = () => {
   if (tab.value === 'email') {
-    console.log('E-posta ile giriş yapılıyor:', email.value, password.value);
+    console.log('E-posta ile giriş yapılıyor:', user.email, user.password);
   } else {
     console.log('Cep telefonu ile giriş yapılıyor:', phone.value);
   }
